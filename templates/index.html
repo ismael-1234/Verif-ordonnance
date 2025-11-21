@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>OrdoVerif – Python Flask</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>OrdoVerif – vérification d’ordonnance</h1>
+  <form id="upload" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/*,.pdf" required>
+    <button type="submit">Vérifier</button>
+  </form>
+  <pre id="result"></pre>
+  <script>
+    document.getElementById('upload').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const res = await fetch('/check', {method: 'POST', body: form});
+      const json = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+    });
+  </script>
+</body>
+</html>
