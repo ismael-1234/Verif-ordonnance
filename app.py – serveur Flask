@@ -1,0 +1,40 @@
+from flask import Flask, request, jsonify, render_template
+import os, uuid
+from werkzeug.utils import secure_filename
+from verifier import verify
+from pdf2image import convert_from_path
+
+app = Flask(__name__)
+UPLOAD = 'uploads'
+ALLOWED = {'png', 'jpg', 'jpeg', 'pdf'}
+app.config['UPLOAD_FOLDER'] = UPLOAD
+os.makedirs(UPLOAD, exist_ok=True)
+
+def allowed(f): return '.' in f and f.rsplit('.', 1)[1].lower() in ALLOWED
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/check', methods=['POST'])
+def check():
+    if 'file' not in request.files:
+        return jsonify({"error": "Pas de fichier"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Fichier vide"}), 400
+    if not allowed(file.filename):
+        return jsonify({"error": "Format non autorisé"}), 400
+    filename = str(uuid.uuid4()) + secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    # PDF → PNG
+    if filename.lower().endswith('.pdf'):
+        pages = convert_from_path(filepath, dpi=300)
+        filepath = filepath.replace('.pdf', '.png')
+        pages[0].save(filepath, 'PNG')
+    report = verify(filepath)
+    return jsonify(report)
+
+if __name__ == '__main__':
+    app.run(debug=True)
