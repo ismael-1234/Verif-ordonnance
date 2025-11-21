@@ -1,0 +1,8 @@
+# 1. Télécharger / cloner le dossier
+cd ordo-verif-py
+python -m venv venv
+source venv/bin/activate  # Windows : venv\Scripts\activate
+pip install -r requirements.txt
+# 2. Installer Tesseract + poppler (voir § 2)
+python app.py
+# 3. Ouvrir http://localhost:5000
